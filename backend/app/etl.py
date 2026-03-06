@@ -18,6 +18,9 @@ from app.models.interaction import InteractionLog
 from app.models.item import ItemRecord
 from app.models.learner import Learner
 from app.settings import settings
+from app.models.item import ItemRecord
+from app.models.learner import Learner
+from app.models.interaction import InteractionLog
 
 
 # ---------------------------------------------------------------------------
