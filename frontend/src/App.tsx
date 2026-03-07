@@ -44,19 +44,25 @@ function App() {
   useEffect(() => {
     if (!token || page !== 'items') return
 
-    dispatch({ type: 'fetch_start' })
+    const fetchData = async () => {
+      dispatch({ type: 'fetch_start' })
 
-    fetch('/items/', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
+      try {
+        const res = await fetch('/items/', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
-      .then((data: Item[]) => dispatch({ type: 'fetch_success', data }))
-      .catch((err: Error) =>
-        dispatch({ type: 'fetch_error', message: err.message }),
-      )
+        const data = (await res.json()) as Item[]
+        dispatch({ type: 'fetch_success', data })
+      } catch (err) {
+        dispatch({
+          type: 'fetch_error',
+          message: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }
+
+    fetchData()
   }, [token, page])
 
   function handleConnect(e: FormEvent) {

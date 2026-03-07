@@ -52,32 +52,43 @@ export function Dashboard() {
   useEffect(() => {
     if (!token) return
 
-    setLoading(true)
-    setError('')
+    const fetchData = async () => {
+      setLoading(true)
+      setError('')
 
-    const headers = { Authorization: `Bearer ${token}` }
+      const headers = { Authorization: `Bearer ${token}` }
 
-    Promise.all([
-      fetch(`/analytics/scores?lab=${lab}`, { headers }).then(res => {
-        if (!res.ok) throw new Error(`Scores: HTTP ${res.status}`)
-        return res.json()
-      }),
-      fetch(`/analytics/timeline?lab=${lab}`, { headers }).then(res => {
-        if (!res.ok) throw new Error(`Timeline: HTTP ${res.status}`)
-        return res.json()
-      }),
-      fetch(`/analytics/pass-rates?lab=${lab}`, { headers }).then(res => {
-        if (!res.ok) throw new Error(`Pass Rates: HTTP ${res.status}`)
-        return res.json()
-      }),
-    ])
-      .then(([scoresData, timelineData, passRatesData]) => {
+      try {
+        const [scoresData, timelineData, passRatesData] = await Promise.all([
+          fetch(`/analytics/scores?lab=${lab}`, { headers }).then(res => {
+            if (!res.ok) throw new Error(`Scores: HTTP ${res.status}`)
+            return res.json()
+          }),
+          fetch(`/analytics/timeline?lab=${lab}`, { headers }).then(res => {
+            if (!res.ok) throw new Error(`Timeline: HTTP ${res.status}`)
+            return res.json()
+          }),
+          fetch(`/analytics/pass-rates?lab=${lab}`, { headers }).then(res => {
+            if (!res.ok) throw new Error(`Pass Rates: HTTP ${res.status}`)
+            return res.json()
+          }),
+        ])
+
         setScores(scoresData as ScoreBucket[])
         setTimeline(timelineData as TimelineEntry[])
         setPassRates(passRatesData as PassRate[])
-      })
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError(String(err))
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
   }, [lab, token])
 
   const scoreChartData = {
